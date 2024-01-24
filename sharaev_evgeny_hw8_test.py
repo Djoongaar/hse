@@ -11,4 +11,4 @@ test_sum_distance(1, 0, 1)
 test_sum_distance(0, 0, 0)
 test_sum_distance(-5, 0, -15)
 # Broken assert
-test_sum_distance(-5, 0, 10)
+# test_sum_distance(-5, 0, 10)
