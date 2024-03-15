@@ -1,0 +1,77 @@
+is_detected;software;malware
+False;Bkav;
+True;Lionic;Trojan.MSExcel.Generic.4!c
+True;Elastic;malicious (high confidence)
+True;MicroWorld-eScan;Trojan.GenericKD.32672372
+True;FireEye;Trojan.GenericKD.32672372
+True;CAT-QuickHeal;O97M.Downloader.37056
+True;Skyhigh;W97M/Downloader.ip
+True;McAfee;W97M/Downloader.ip
+False;Malwarebytes;
+False;Zillya;
+True;Sangfor;VBA.Sus.Obf
+False;Trustlook;
+True;Alibaba;TrojanDownloader:VBA/MalDoc.ali1000101
+True;K7GW;Trojan ( 0001140e1 )
+True;K7AntiVirus;Trojan ( 0001140e1 )
+True;Baidu;VBA.Trojan.Agent.ac
+True;VirIT;X97M.Dwnldr.BFS
+True;Symantec;Trojan.Gen.NPE
+True;ESET-NOD32;VBA/TrojanDropper.Agent.AXB
+True;Cynet;Malicious (score: 99)
+True;TrendMicro-HouseCall;TROJ_FRS.0NA103CI20
+True;Avast;Script:SNH-gen [Trj]
+True;ClamAV;Xls.Dropper.Agent-7398287-0
+True;Kaspersky;UDS:DangerousObject.Multi.Generic
+True;BitDefender;Trojan.GenericKD.32672372
+True;NANO-Antivirus;Trojan.Ole2.Vbs-heuristic.druvzi
+False;SUPERAntiSpyware;
+True;Tencent;Trojan.MsOffice.MacroS.11020865
+False;Sophos;
+True;F-Secure;Trojan.TR/Dldr.Script.xrlus
+True;DrWeb;X97M.DownLoader.459
+True;VIPRE;Trojan.GenericKD.32672372
+True;TrendMicro;TROJ_FRS.0NA103CI20
+False;CMC;
+True;Emsisoft;Trojan.GenericKD.32672372 (B)
+True;SentinelOne;Static AI - Malicious OPENXML
+False;Avast-Mobile;
+False;Jiangmin;
+True;Varist;ABTrojan.MGBA-
+True;Avira;TR/Dldr.Script.xrlus
+True;MAX;malware (ai score=100)
+True;Antiy-AVL;Trojan[Downloader]/Script.AGeneric
+False;Kingsoft;
+True;Microsoft;Trojan:O97M/Obfuse.CP
+False;Gridinsoft;
+True;Xcitium;Malware@#14kthclynvl61
+True;Arcabit;Trojan.Generic.D1F28A74
+True;ViRobot;XLS.Z.Agent.36523
+True;ZoneAlarm;HEUR:Trojan-Downloader.Script.Generic
+True;GData;Trojan.GenericKD.32672372
+True;Google;Detected
+False;AhnLab-V3;
+False;Acronis;
+False;BitDefenderTheta;
+True;TACHYON;Suspicious/XOX.XSR.Gen
+False;VBA32;
+False;Zoner;
+True;Rising;Downloader.Agent/VBA!1.AC59 (CLASSIC)
+False;Yandex;
+True;Ikarus;Trojan-Downloader.Script
+False;MaxSecure;
+True;Fortinet;VBA/Agent.BCF0!tr
+True;AVG;Script:SNH-gen [Trj]
+False;Panda;
+False;SymantecMobileInsight;
+False;BitDefenderFalx;
+False;tehtris;
+False;DeepInstinct;
+False;APEX;
+False;Paloalto;
+False;Trapmine;
+False;Webroot;
+False;Cylance;
+False;CrowdStrike;
+False;Cybereason;
+False;alibabacloud;
