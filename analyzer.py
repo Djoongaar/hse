@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-import json
-import os
+
 # (c) [2024] Evgeny S.
 # All rights reserved.
 # Any part of this script can be reproduced, distributed freely
 # or by means, electronic, mechanical, photocopying, recording or other means,
 # without the prior written permission of the copyright owner.
 
-
+import json
+import os
 import zipfile
 import requests
 import pandas as pd
@@ -30,13 +30,20 @@ class Unzipper:
 class VirusTotalAnalyzer:
     def __init__(self):
         self.__api_key = "8855876211e9e685efb3f3362691ac517d358f47406b2bcf988ab88ef3c40ca5"
-        self.__file_path = "invoice-42369643.xlsm"
+        self.__file_path = "invoice-42369643.html"
         self.__upload_file_url = "https://www.virustotal.com/api/v3/files"
         self.__headers = {"accept": "application/json", "x-apikey": self.__api_key}
         self.__file_id = self.__upload()
         self.__analysis_url = "https://www.virustotal.com/api/v3/analyses/{}".format(self.__file_id)
+        self.__behaviours_url = "https://www.virustotal.com/api/v3/files/{}/behaviour_summary".format(self.__get_sha256())
         self.__report_data = self.__analyze()
-        self.__report_df = self.__create_df()
+        self.__report_df = pd.concat(
+        [
+            self.__get_malware_report(),
+            self.__get_tags_report(),
+            self.__get_hosts_report()
+        ],
+            axis=0)
 
     def __upload(self):
         """
@@ -46,19 +53,43 @@ class VirusTotalAnalyzer:
         with open(self.__file_path, "rb") as file:
             files = {"file": (self.__file_path, file)}
             response = requests.post(self.__upload_file_url, headers=self.__headers, files=files)
-
         return response.json()["data"]["id"]
+
+    def __get_sha256(self):
+        response = requests.get(self.__analysis_url, headers=self.__headers)
+        return response.json()["meta"]["file_info"]["sha256"]
 
     def __analyze(self):
         """
         Analyze file with VirusTotalApi
         :return: JSON response
         """
-
         response = requests.get(self.__analysis_url, headers=self.__headers)
         return response.json()
 
-    def __create_df(self):
+    def __get_behavior_data(self):
+        return requests.get(self.__behaviours_url, headers=self.__headers)
+
+    def __get_tags_report(self):
+        behavior_data = self.__get_behavior_data()
+        tags = behavior_data.json()["data"]["tags"]
+        return pd.DataFrame(tags, columns=["tags"])
+
+    def __get_hosts_report(self):
+        behavior_data = self.__get_behavior_data()
+        dns_lookups = behavior_data.json()["data"]["dns_lookups"]
+        hosts = []
+        for lookup in dns_lookups:
+            hostname = lookup["hostname"]
+            hosts.append(hostname)
+            resolved_ips = lookup.get("resolved_ips", [])
+            for resolved_ip in resolved_ips:
+                hosts.append(resolved_ip)
+        hosts_df = pd.DataFrame(hosts, columns=["hostname"])
+
+        return hosts_df
+
+    def __get_malware_report(self):
         """
         Create dataframe from JSON data
         :return: pandas dataframe
@@ -69,6 +100,9 @@ class VirusTotalAnalyzer:
             with open("report.json", "w") as file:
                 json.dump(report, file, indent=4)
 
+        # Немного отошел от формального выполнения ДЗ
+        # составил отчет в виде таблицы детектирования угроз
+        # где True если угроза детектировала, а иначе False
         for soft, res in report.items():
             data_arr.append([
                 bool(res["result"]),
@@ -85,8 +119,32 @@ class VirusTotalAnalyzer:
         return self.__report_df.to_csv("report.csv", index=False, sep=";", encoding="utf-8")
 
 
+class VulnersAnalyzer:
+    def __init__(self):
+        self.__url = 'https://vulners.com/api/v3/burp/packages/'
+        self.__api_key = "O80JZKS1GC6KQSKSBIENJF35689G2RAOAC778L8KUQO6XCDRNK0366O8LX6CKAMB"
+        self.__headers = {"Content-type": "application/json"}
+        self.__get_exploits()
+
+    def __get_exploits(self):
+        with open("software.json", "r") as file:
+            data = json.load(file)
+        for software in data[:1]:
+            print(software)
+            _data = {
+                "software": software["Program"],
+                "version": software["Version"],
+                "type": "software",
+                "maxVulnerabilities": 10,
+                "apyKey": self.__api_key
+            }
+            response = requests.post(self.__url, headers=self.__headers, data=json.dumps(_data))
+            print(response.text)
+
+
 if __name__ == "__main__":
     Unzipper()
     df = VirusTotalAnalyzer()
     df.to_stdout()
     df.to_csv()
+    VulnersAnalyzer()
