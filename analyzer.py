@@ -123,13 +123,15 @@ class VirusTotalAnalyzer:
 class VulnersAnalyzer:
     def __init__(self):
         self.__url = 'https://vulners.com/api/v3/burp/softwareapi/'
-        self.__api_key = "O80JZKS1GC6KQSKSBIENJF35689G2RAOAC778L8KUQO6XCDRNK0366O8LX6CKAMB"
-        self.__api_key_1 = "FIBG4SEG3DQ0711CBQTJAQ3XIDHS92P29MLVBAZG10CVGK40SDZTHVOCE5BZNG4O"
+        self.__api_key = "QY6X9YK1FO1R42RU3RJ7H050X8SJ4OLPMNBUVOXPKQWXYPTIQFYOIP7U9RTI1GY3"
         self.__headers = {"Content-type": "application/json"}
-        self.__get_exploits()
-        self.__get_report_df()
+        self.__report_json = self.__create_report_json()
+        self.__report_df = self.__get_report_df()
+        self.__to_stdout()
+        self.__to_csv()
 
-    def __get_exploits(self):
+    def __create_report_json(self):
+        file_path = "vulners_report.json"
         with open("software.json", "r") as file:
             data = json.load(file)
         report_json = {"report": []}
@@ -143,28 +145,28 @@ class VulnersAnalyzer:
             }
             response_json = requests.post(self.__url, headers=self.__headers, json=software_data)
             response_dict = json.loads(response_json.text)
-            response_dict["software"] = software
-            report_json["report"] = software["Program"]
-            report_json["version"] = software["Version"]
-
-        with open("vulners_report.json", "w") as vulners_report:
+            response_dict["software"] = software["Program"]
+            response_dict["version"] = software["Version"]
+            report_json["report"].append(response_dict)
+        with open(file_path, "w") as vulners_report:
             json.dump(report_json, vulners_report, indent=4)
 
+            return file_path
 
     def __get_report_df(self):
-        with open("vulners_report.json", "r") as vulners_report:
+        with open(self.__report_json, "r") as vulners_report:
             data = json.load(vulners_report)
 
         cve = []
 
-        # TODO: Добавить в отчет название ПО
         for result in data["report"]:
             data = result["data"]
             if data.get("search"):
                 values = data.get("search")
                 for value in values:
                     cve.append([
-                        # Название ПО
+                        result["software"],
+                        result["version"],
                         True,
                         value["_source"]["cvelist"],
                         value["_source"]["href"],
@@ -172,24 +174,25 @@ class VulnersAnalyzer:
                     ])
             else:
                 cve.append([
-                    # Название ПО
+                    result["software"],
+                    result["version"],
                     False,
                     None,
                     None,
                     None
                 ])
-        return pd.DataFrame(cve, columns=["is_detected", "cve_list", "href", "description"])
+        return pd.DataFrame(cve, columns=["software", "version", "is_detected", "cve_list", "href", "description"])
 
     def __to_csv(self):
-        pass
+        return self.__report_df.to_csv("vulners.csv", index=False, sep=";", encoding="utf-8")
 
     def __to_stdout(self):
-        pass
+        print(self.__report_df)
 
 
 if __name__ == "__main__":
-    # Unzipper()
-    # df = VirusTotalAnalyzer()
-    # df.to_stdout()
-    # df.to_csv()
+    Unzipper()
+    df = VirusTotalAnalyzer()
+    df.to_stdout()
+    df.to_csv()
     VulnersAnalyzer()
