@@ -35,14 +35,15 @@ class VirusTotalAnalyzer:
         self.__headers = {"accept": "application/json", "x-apikey": self.__api_key}
         self.__file_id = self.__upload()
         self.__analysis_url = "https://www.virustotal.com/api/v3/analyses/{}".format(self.__file_id)
-        self.__behaviours_url = "https://www.virustotal.com/api/v3/files/{}/behaviour_summary".format(self.__get_sha256())
+        self.__behaviours_url = "https://www.virustotal.com/api/v3/files/{}/behaviour_summary".format(
+            self.__get_sha256())
         self.__report_data = self.__analyze()
         self.__report_df = pd.concat(
-        [
-            self.__get_malware_report(),
-            self.__get_tags_report(),
-            self.__get_hosts_report()
-        ],
+            [
+                self.__get_malware_report(),
+                self.__get_tags_report(),
+                self.__get_hosts_report()
+            ],
             axis=0)
 
     def __upload(self):
@@ -121,30 +122,74 @@ class VirusTotalAnalyzer:
 
 class VulnersAnalyzer:
     def __init__(self):
-        self.__url = 'https://vulners.com/api/v3/burp/packages/'
+        self.__url = 'https://vulners.com/api/v3/burp/softwareapi/'
         self.__api_key = "O80JZKS1GC6KQSKSBIENJF35689G2RAOAC778L8KUQO6XCDRNK0366O8LX6CKAMB"
+        self.__api_key_1 = "FIBG4SEG3DQ0711CBQTJAQ3XIDHS92P29MLVBAZG10CVGK40SDZTHVOCE5BZNG4O"
         self.__headers = {"Content-type": "application/json"}
         self.__get_exploits()
+        self.__get_report_df()
 
     def __get_exploits(self):
         with open("software.json", "r") as file:
             data = json.load(file)
-        for software in data[:1]:
-            print(software)
-            _data = {
+        report_json = {"report": []}
+        for software in data:
+            software_data = {
                 "software": software["Program"],
                 "version": software["Version"],
                 "type": "software",
-                "maxVulnerabilities": 10,
-                "apyKey": self.__api_key
+                "maxVulnerabilities": 100,
+                "apiKey": self.__api_key
             }
-            response = requests.post(self.__url, headers=self.__headers, data=json.dumps(_data))
-            print(response.text)
+            response_json = requests.post(self.__url, headers=self.__headers, json=software_data)
+            response_dict = json.loads(response_json.text)
+            response_dict["software"] = software
+            report_json["report"] = software["Program"]
+            report_json["version"] = software["Version"]
+
+        with open("vulners_report.json", "w") as vulners_report:
+            json.dump(report_json, vulners_report, indent=4)
+
+
+    def __get_report_df(self):
+        with open("vulners_report.json", "r") as vulners_report:
+            data = json.load(vulners_report)
+
+        cve = []
+
+        # TODO: Добавить в отчет название ПО
+        for result in data["report"]:
+            data = result["data"]
+            if data.get("search"):
+                values = data.get("search")
+                for value in values:
+                    cve.append([
+                        # Название ПО
+                        True,
+                        value["_source"]["cvelist"],
+                        value["_source"]["href"],
+                        value["_source"]["description"]
+                    ])
+            else:
+                cve.append([
+                    # Название ПО
+                    False,
+                    None,
+                    None,
+                    None
+                ])
+        return pd.DataFrame(cve, columns=["is_detected", "cve_list", "href", "description"])
+
+    def __to_csv(self):
+        pass
+
+    def __to_stdout(self):
+        pass
 
 
 if __name__ == "__main__":
-    Unzipper()
-    df = VirusTotalAnalyzer()
-    df.to_stdout()
-    df.to_csv()
+    # Unzipper()
+    # df = VirusTotalAnalyzer()
+    # df.to_stdout()
+    # df.to_csv()
     VulnersAnalyzer()
